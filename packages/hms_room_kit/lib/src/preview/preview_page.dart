@@ -80,8 +80,6 @@ class _PreviewPageState extends State<PreviewPage> {
           tokenData: widget.tokenData,
           hmsSDKInteractor: previewStore.hmsSDKInteractor,
           isNoiseCancellationEnabled: previewStore.isNoiseCancellationEnabled,
-          isVideoOn: previewStore.isVideoOn,
-          isMicOn: previewStore.isAudioOn,
         ),
       ),
     );
