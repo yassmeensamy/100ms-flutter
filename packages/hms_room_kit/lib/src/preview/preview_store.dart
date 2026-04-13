@@ -87,19 +87,17 @@ class PreviewStore extends ChangeNotifier
     List<HMSVideoTrack> videoTracks = [];
     for (var track in localTracks) {
       if (track.kind == HMSTrackKind.kHMSTrackKindVideo) {
-        isVideoOn = !(track.isMute);
         videoTracks.add(track as HMSVideoTrack);
-      }
-      if (track.kind == HMSTrackKind.kHMSTrackKindAudio) {
-        isAudioOn = !(track.isMute);
       }
     }
     this.localTracks = videoTracks;
+    isVideoOn = false;
+    isAudioOn = false;
     getRoles();
     getCurrentAudioDevice();
     getAudioDevicesList();
-    toggleCameraMuteState();
-    toggleMicMuteState();
+    hmsSDKInteractor.toggleCameraMuteState();
+    hmsSDKInteractor.toggleMicMuteState();
     notifyListeners();
   }
 
