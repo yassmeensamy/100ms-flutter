@@ -58,6 +58,12 @@ class MeetingScreenController extends StatefulWidget {
 
   final bool isNoiseCancellationEnabled;
 
+  ///[isVideoOn] is the video state from preview
+  final bool isVideoOn;
+
+  ///[isMicOn] is the mic state from preview
+  final bool isMicOn;
+
   const MeetingScreenController({
     Key? key,
     required this.user,
@@ -72,6 +78,8 @@ class MeetingScreenController extends StatefulWidget {
     this.tokenData,
     required this.hmsSDKInteractor,
     this.isNoiseCancellationEnabled = false,
+    this.isVideoOn = true,
+    this.isMicOn = true,
   }) : super(key: key);
 
   @override
@@ -90,6 +98,8 @@ class _MeetingScreenControllerState extends State<MeetingScreenController> {
 
     ///Here we create an instance of meeting store, set initial settings and join meeting.
     _meetingStore = MeetingStore(hmsSDKInteractor: widget.hmsSDKInteractor);
+    _meetingStore.isVideoOn = widget.isVideoOn;
+    _meetingStore.isMicOn = widget.isMicOn;
     _setInitValues();
     _joinMeeting();
     _setHLSPlayerStore();
