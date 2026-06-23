@@ -286,6 +286,31 @@ class MeetingStore extends ChangeNotifier
 
   List<TranscriptStore> captions = [];
 
+  ///Builds the local peer metadata JSON. The avatar url coming from the
+  ///prebuilt options is always merged in so the participant's profile image
+  ///is shared with everyone and survives BRB / hand-raise metadata updates.
+  String buildLocalPeerMetadata({
+    bool? isBRBOn,
+    String? prevRole,
+    int? handRaisedAt,
+  }) {
+    final Map<String, dynamic> metadata = {};
+    if (isBRBOn != null) {
+      metadata["isBRBOn"] = isBRBOn;
+    }
+    if (prevRole != null) {
+      metadata["prevRole"] = prevRole;
+    }
+    if (handRaisedAt != null) {
+      metadata["handRaisedAt"] = handRaisedAt;
+    }
+    final avatarUrl = Constant.prebuiltOptions?.avatarUrl;
+    if (avatarUrl != null && avatarUrl.trim().isNotEmpty) {
+      metadata["avatarUrl"] = avatarUrl;
+    }
+    return jsonEncode(metadata);
+  }
+
   Future<HMSException?> join(String userName, String? tokenData) async {
     late HMSConfig joinConfig;
 
@@ -294,6 +319,9 @@ class MeetingStore extends ChangeNotifier
       joinConfig = HMSConfig(
         authToken: tokenData,
         userName: userName,
+        //The local user's profile image is shared via metadata so other
+        //participants can render it in place of the initials avatar
+        metaData: buildLocalPeerMetadata(),
         // endPoint is only required by 100ms Team. Client developers should not use `endPoint`
         //This is only for 100ms internal testing, endPoint can be safely removed from
         //the HMSConfig for external usage
@@ -547,7 +575,7 @@ class MeetingStore extends ChangeNotifier
 
   void setPreviousRole(String oldRole) {
     _hmsSDKInteractor.changeMetadata(
-      metadata: "{\"isBRBOn\":false,\"prevRole\":\"$oldRole\"}",
+      metadata: buildLocalPeerMetadata(isBRBOn: false, prevRole: oldRole),
       hmsActionResultListener: this,
     );
     if (isRaisedHand) {
@@ -709,15 +737,18 @@ class MeetingStore extends ChangeNotifier
     int currentTime = DateTime.now().millisecondsSinceEpoch;
 
     _hmsSDKInteractor.changeMetadata(
-      metadata:
-          "{\"isBRBOn\":false,\"prevRole\":\"$previousRole\",\"handRaisedAt\":${currentTime}}",
+      metadata: buildLocalPeerMetadata(
+        isBRBOn: false,
+        prevRole: previousRole,
+        handRaisedAt: currentTime,
+      ),
       hmsActionResultListener: this,
     );
   }
 
   void resetTimestampWhenHandDown() {
     _hmsSDKInteractor.changeMetadata(
-      metadata: "{\"isBRBOn\":false,\"prevRole\":\"$previousRole\"}",
+      metadata: buildLocalPeerMetadata(isBRBOn: false, prevRole: previousRole),
       hmsActionResultListener: this,
     );
   }
@@ -748,9 +779,8 @@ class MeetingStore extends ChangeNotifier
     if (isRaisedHand) {
       _hmsSDKInteractor.lowerLocalPeerHand(hmsActionResultListener: this);
     }
-    String value = isBRB ? "true" : "false";
     _hmsSDKInteractor.changeMetadata(
-      metadata: "{\"isBRBOn\":$value,\"prevRole\":\"$previousRole\"}",
+      metadata: buildLocalPeerMetadata(isBRBOn: isBRB, prevRole: previousRole),
       hmsActionResultListener: this,
     );
     if (isMicOn) {

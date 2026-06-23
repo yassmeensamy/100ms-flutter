@@ -20,6 +20,7 @@ import 'package:hms_room_kit/src/layout_api/hms_theme_colors.dart';
 import 'package:hms_room_kit/src/preview_for_role/preview_for_role_bottom_sheet.dart';
 import 'package:hms_room_kit/src/preview_for_role/preview_for_role_header.dart';
 import 'package:hms_room_kit/src/widgets/common_widgets/hms_circular_avatar.dart';
+import 'package:hms_room_kit/src/common/constants.dart';
 import 'package:hms_room_kit/src/common/utility_components.dart';
 import 'package:hms_room_kit/src/hls_viewer/hls_player.dart';
 import 'package:hms_room_kit/src/hls_viewer/hls_player_store.dart';
@@ -278,6 +279,9 @@ class _HLSViewerPageState extends State<HLSViewerPage> {
                                                                           HMSCircularAvatar(
                                                                         name: context.read<MeetingStore>().localPeer?.name ??
                                                                             "",
+                                                                        avatarUrl: Constant
+                                                                            .prebuiltOptions
+                                                                            ?.avatarUrl,
                                                                       ),
                                                                     ),
                                                             );

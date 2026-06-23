@@ -9,7 +9,6 @@ import 'package:hms_room_kit/src/layout_api/hms_theme_colors.dart';
 import 'package:hms_room_kit/src/preview/preview_get_participants_text.dart';
 import 'package:hms_room_kit/src/preview/preview_store.dart';
 import 'package:hms_room_kit/src/widgets/common_widgets/hms_subtitle_text.dart';
-import 'package:hms_room_kit/src/widgets/common_widgets/hms_title_text.dart';
 
 ///This widget renders the UI for whether the HLS is running in the room
 ///If the HLS is running, it will show the LIVE tag
@@ -73,8 +72,10 @@ class PreviewParticipantChip extends StatelessWidget {
               )
             : Container(),
 
-        ///This will only be rendered if room state is enabled for the role
-        peerCount == 0
+        ///This is only rendered when there are other participants already in
+        ///the session. The "You are the first to join" message is intentionally
+        ///not shown.
+        peerCount <= 1
             ? Container()
             : Container(
                 height: 40,
@@ -94,17 +95,9 @@ class PreviewParticipantChip extends StatelessWidget {
                       left: 20,
                       right: 16,
                     ),
-                    child: peerCount == 1
-                        ? HMSTitleText(
-                            text: "You are the first to join",
-                            fontSize: 14,
-                            lineHeight: 20,
-                            letterSpacing: 0.25,
-                            textColor: HMSThemeColors.onSurfaceHighEmphasis,
-                          )
-                        : PreviewParticipantsText(
-                            peerCount: previewStore.peerCount,
-                          ),
+                    child: PreviewParticipantsText(
+                      peerCount: previewStore.peerCount,
+                    ),
                   ),
                 ),
               ),

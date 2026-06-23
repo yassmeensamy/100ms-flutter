@@ -1,4 +1,5 @@
 //Dart imports
+import 'dart:convert';
 import 'dart:developer';
 
 ///Package imports
@@ -101,6 +102,17 @@ class PreviewStore extends ChangeNotifier
     notifyListeners();
   }
 
+  ///Builds the preview peer metadata carrying the local user's avatar url
+  ///(if provided via the prebuilt options). Returns an empty JSON object when
+  ///there is no image to share.
+  String _buildPreviewMetadata() {
+    final avatarUrl = Constant.prebuiltOptions?.avatarUrl;
+    if (avatarUrl != null && avatarUrl.trim().isNotEmpty) {
+      return jsonEncode({"avatarUrl": avatarUrl});
+    }
+    return "{}";
+  }
+
   void startPreview({
     required String userName,
     required String tokenData,
@@ -109,6 +121,9 @@ class PreviewStore extends ChangeNotifier
       authToken: tokenData,
       userName: userName,
       captureNetworkQualityInPreview: true,
+      //Share the local user's profile image (if any) with the room so it can
+      //be rendered in place of the initials avatar
+      metaData: _buildPreviewMetadata(),
       // endPoint is only required by 100ms Team. Client developers should not use `endPoint`
       //This is only for 100ms internal testing, endPoint can be safely removed from
       //the HMSConfig for external usage

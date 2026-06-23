@@ -1,6 +1,7 @@
 library;
 
 ///Dart imports
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -43,6 +44,29 @@ class Utilities {
       }
     }
     return name.toUpperCase();
+  }
+
+  ///This function reads the [avatarUrl] (the peer's profile image) from the
+  ///peer metadata JSON. The prebuilt stores the image url under the
+  ///"avatarUrl" key so every participant's picture can be shown in place of
+  ///the initials avatar. Returns null when the metadata is empty, not valid
+  ///JSON, or does not contain a usable image url.
+  static String? getAvatarUrlFromMetadata(String? metadata) {
+    if (metadata == null || metadata.isEmpty) {
+      return null;
+    }
+    try {
+      final decoded = jsonDecode(metadata);
+      if (decoded is Map<String, dynamic>) {
+        final url = decoded["avatarUrl"];
+        if (url is String && url.trim().isNotEmpty) {
+          return url;
+        }
+      }
+    } catch (_) {
+      // Metadata may be a non-JSON string (e.g. legacy peers) — ignore.
+    }
+    return null;
   }
 
   ///This function is used to get the avatar background colour

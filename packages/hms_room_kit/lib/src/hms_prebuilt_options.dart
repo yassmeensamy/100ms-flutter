@@ -18,6 +18,12 @@ class HMSPrebuiltOptions {
   //The id of the user
   final String? userId;
 
+  //The profile image url of the local user.
+  //When provided it is shared with other participants via the peer metadata
+  //and shown (for every participant that provides one) in place of the
+  //initials avatar in both the preview and the in-call tiles.
+  final String? avatarUrl;
+
   //The token and init endpoints
   final Map<String, String>? endPoints;
 
@@ -45,6 +51,7 @@ class HMSPrebuiltOptions {
   HMSPrebuiltOptions({
     this.userName,
     this.userId,
+    this.avatarUrl,
     this.endPoints,
     this.debugInfo = false,
     this.iOSScreenshareConfig,

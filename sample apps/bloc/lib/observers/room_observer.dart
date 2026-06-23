@@ -1,7 +1,7 @@
 import 'package:demo_app_with_100ms_and_bloc/bloc/room/peer_track_node.dart';
 import 'package:demo_app_with_100ms_and_bloc/bloc/room/room_overview_bloc.dart';
 import 'package:demo_app_with_100ms_and_bloc/bloc/room/room_overview_event.dart';
-import 'package:demo_app_with_100ms_and_bloc/services/RoomService.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 import 'package:rxdart/subjects.dart';
 
@@ -11,20 +11,50 @@ class RoomObserver implements HMSUpdateListener, HMSActionResultListener {
   RoomObserver(this.roomOverviewBloc) {
     roomOverviewBloc.hmsSdk.addUpdateListener(listener: this);
 
-    roomOverviewBloc.hmsSdk.build();
-    RoomService()
-        .getToken(user: roomOverviewBloc.name, room: roomOverviewBloc.url)
-        .then((token) {
-          if (token == null) return;
-          if (token[0] == null) return;
+    _initializeAndJoin();
+  }
 
-          HMSConfig config = HMSConfig(
-            authToken: token[0]!,
-            userName: roomOverviewBloc.name,
-          );
+  Future<void> _initializeAndJoin() async {
+    await roomOverviewBloc.hmsSdk.build();
 
-          roomOverviewBloc.hmsSdk.join(config: config);
-        });
+    // Extract room code from URL
+    String roomCode = _extractRoomCode(roomOverviewBloc.url);
+    if (roomCode.isEmpty) {
+      if (kDebugMode) {
+        print("Invalid room URL");
+      }
+      return;
+    }
+
+    // Get auth token using SDK method
+    dynamic tokenResult = await roomOverviewBloc.hmsSdk.getAuthTokenByRoomCode(
+      roomCode: roomCode,
+    );
+
+    if (tokenResult is String) {
+      HMSConfig config = HMSConfig(
+        authToken: tokenResult,
+        userName: roomOverviewBloc.name,
+      );
+      roomOverviewBloc.hmsSdk.join(config: config);
+    } else if (tokenResult is HMSException) {
+      if (kDebugMode) {
+        print("Error getting token: ${tokenResult.message}");
+      }
+    }
+  }
+
+  String _extractRoomCode(String url) {
+    // Handle URLs like https://subdomain.app.100ms.live/meeting/abc-def-ghi
+    Uri? uri = Uri.tryParse(url);
+    if (uri == null) return "";
+
+    List<String> pathSegments = uri.pathSegments;
+    if (pathSegments.length >= 2) {
+      // Return the last segment (room code)
+      return pathSegments.last;
+    }
+    return "";
   }
 
   final _peerNodeStreamController = BehaviorSubject<List<PeerTrackNode>>.seeded(
@@ -140,6 +170,8 @@ class RoomObserver implements HMSUpdateListener, HMSActionResultListener {
   }
 
   Future<void> leaveMeeting() async {
+    // Remove update listener before leaving to prevent race conditions
+    roomOverviewBloc.hmsSdk.removeUpdateListener(listener: this);
     roomOverviewBloc.hmsSdk.leave(hmsActionResultListener: this);
   }
 
@@ -172,6 +204,10 @@ class RoomObserver implements HMSUpdateListener, HMSActionResultListener {
     Map<String, dynamic>? arguments,
   }) {
     _peerNodeStreamController.add([]);
+    // Close the stream controller when leave is successful
+    if (methodType == HMSActionResultListenerMethod.leave) {
+      _peerNodeStreamController.close();
+    }
   }
 
   @override

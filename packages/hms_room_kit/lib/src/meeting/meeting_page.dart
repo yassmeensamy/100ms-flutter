@@ -115,6 +115,10 @@ class _MeetingPageState extends State<MeetingPage> {
                       backgroundColor: HMSThemeColors.backgroundDim,
                       resizeToAvoidBottomInset: false,
                       body: SafeArea(
+                        ///No top inset: the screen header / host app already
+                        ///clears the status bar, so applying it again here only
+                        ///adds an empty band at the top.
+                        top: false,
                         child: Theme(
                           data: ThemeData(
                             brightness: Brightness.dark,
@@ -122,322 +126,318 @@ class _MeetingPageState extends State<MeetingPage> {
                             scaffoldBackgroundColor:
                                 HMSThemeColors.backgroundDim,
                           ),
-                          child: SingleChildScrollView(
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              height: MediaQuery.of(context).size.height -
-                                  MediaQuery.of(context).padding.top -
-                                  MediaQuery.of(context).padding.bottom,
-                              child: Stack(
-                                children: [
-                                  ChangeNotifierProvider.value(
-                                    value: _visibilityController,
-                                    child: MeetingGridComponent(
-                                      visibilityController:
-                                          _visibilityController,
-                                    ),
+
+                          ///The meeting content is rendered directly (no
+                          ///scroll view) so the header, video grid and the
+                          ///bottom action bar appear in place and the controls
+                          ///stay pinned, matching the preview screen.
+                          child: SizedBox.expand(
+                            child: Stack(
+                              children: [
+                                ChangeNotifierProvider.value(
+                                  value: _visibilityController,
+                                  child: MeetingGridComponent(
+                                    visibilityController: _visibilityController,
                                   ),
-                                  Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 15,
-                                          right: 15,
-                                          top: 5,
-                                          bottom: 2,
-                                        ),
-                                        child: ChangeNotifierProvider.value(
-                                          value: _visibilityController,
-                                          child: const MeetingHeader(),
-                                        ),
+                                ),
+                                Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 15,
+                                        right: 15,
+                                        top: 5,
+                                        bottom: 2,
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 8.0,
-                                        ),
-                                        child: ChangeNotifierProvider.value(
-                                          value: _visibilityController,
-                                          child:
-                                              const MeetingBottomNavigationBar(),
-                                        ),
+                                      child: ChangeNotifierProvider.value(
+                                        value: _visibilityController,
+                                        child: const MeetingHeader(),
                                       ),
-                                    ],
-                                  ),
-
-                                  ChangeNotifierProvider.value(
-                                    value: _visibilityController,
-                                    child: const TranscriptionView(),
-                                  ),
-
-                                  ///This gets rendered when the previewForRole method is called
-                                  ///This is used to show the preview for role component
-                                  Selector<
-                                      MeetingStore,
-                                      Tuple3<
-                                          HMSLocalVideoTrack?,
-                                          HMSLocalAudioTrack?,
-                                          HMSRoleChangeRequest?>>(
-                                    selector: (_, meetingStore) => Tuple3(
-                                      meetingStore.previewForRoleVideoTrack,
-                                      meetingStore.previewForRoleAudioTrack,
-                                      meetingStore.currentRoleChangeRequest,
                                     ),
-                                    builder: (_, previewForRoleTracks, __) {
-                                      ///If the preview for role tracks are not null
-                                      ///or role change request is not null
-                                      ///we show the preview for role component
-                                      ///else we show and empty Container
-                                      if (previewForRoleTracks.item1 != null ||
-                                          previewForRoleTracks.item2 != null ||
-                                          previewForRoleTracks.item3 != null) {
-                                        WidgetsBinding.instance
-                                            .addPostFrameCallback((
-                                          timeStamp,
-                                        ) {
-                                          ///For preview for role component we use the [showGeneralDialog]
-                                          showGeneralDialog(
-                                            context: context,
-                                            pageBuilder: (ctx, _, __) {
-                                              return ListenableProvider.value(
-                                                value: context
-                                                    .read<MeetingStore>(),
-                                                child: Scaffold(
-                                                  body: SafeArea(
-                                                    child: Container(
-                                                      color: HMSThemeColors
-                                                          .backgroundDim,
-                                                      height: MediaQuery.of(
-                                                        context,
-                                                      ).size.height,
-                                                      width: MediaQuery.of(
-                                                        context,
-                                                      ).size.width,
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 8.0,
+                                      ),
+                                      child: ChangeNotifierProvider.value(
+                                        value: _visibilityController,
+                                        child:
+                                            const MeetingBottomNavigationBar(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
 
-                                                      ///We render the preview for role component
-                                                      child: Stack(
-                                                        children: [
-                                                          ///This renders the video component
-                                                          ///[HMSTextureView] is only rendered if video is ON
-                                                          ///
-                                                          ///else we render the [HMSCircularAvatar]
-                                                          Selector<MeetingStore,
-                                                              bool>(
-                                                            selector: (
-                                                              _,
-                                                              meetingStore,
-                                                            ) =>
-                                                                meetingStore
-                                                                    .isVideoOn,
-                                                            builder: (_,
-                                                                isVideoOn, __) {
-                                                              return Container(
-                                                                height:
-                                                                    MediaQuery
-                                                                        .of(
-                                                                  context,
-                                                                ).size.height,
-                                                                width:
-                                                                    MediaQuery
-                                                                        .of(
-                                                                  context,
-                                                                ).size.width,
-                                                                color: HMSThemeColors
-                                                                    .backgroundDim,
-                                                                child: (isVideoOn &&
-                                                                        previewForRoleTracks.item1 !=
-                                                                            null)
-                                                                    ? Center(
-                                                                        child:
-                                                                            HMSTextureView(
-                                                                          scaleType:
-                                                                              ScaleType.SCALE_ASPECT_FILL,
-                                                                          track:
-                                                                              previewForRoleTracks.item1!,
-                                                                          setMirror:
-                                                                              true,
-                                                                        ),
-                                                                      )
-                                                                    : Center(
-                                                                        child:
-                                                                            HMSCircularAvatar(
-                                                                          name: context.read<MeetingStore>().localPeer?.name ??
-                                                                              "",
-                                                                        ),
+                                ChangeNotifierProvider.value(
+                                  value: _visibilityController,
+                                  child: const TranscriptionView(),
+                                ),
+
+                                ///This gets rendered when the previewForRole method is called
+                                ///This is used to show the preview for role component
+                                Selector<
+                                    MeetingStore,
+                                    Tuple3<
+                                        HMSLocalVideoTrack?,
+                                        HMSLocalAudioTrack?,
+                                        HMSRoleChangeRequest?>>(
+                                  selector: (_, meetingStore) => Tuple3(
+                                    meetingStore.previewForRoleVideoTrack,
+                                    meetingStore.previewForRoleAudioTrack,
+                                    meetingStore.currentRoleChangeRequest,
+                                  ),
+                                  builder: (_, previewForRoleTracks, __) {
+                                    ///If the preview for role tracks are not null
+                                    ///or role change request is not null
+                                    ///we show the preview for role component
+                                    ///else we show and empty Container
+                                    if (previewForRoleTracks.item1 != null ||
+                                        previewForRoleTracks.item2 != null ||
+                                        previewForRoleTracks.item3 != null) {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((
+                                        timeStamp,
+                                      ) {
+                                        ///For preview for role component we use the [showGeneralDialog]
+                                        showGeneralDialog(
+                                          context: context,
+                                          pageBuilder: (ctx, _, __) {
+                                            return ListenableProvider.value(
+                                              value:
+                                                  context.read<MeetingStore>(),
+                                              child: Scaffold(
+                                                body: SafeArea(
+                                                  child: Container(
+                                                    color: HMSThemeColors
+                                                        .backgroundDim,
+                                                    height: MediaQuery.of(
+                                                      context,
+                                                    ).size.height,
+                                                    width: MediaQuery.of(
+                                                      context,
+                                                    ).size.width,
+
+                                                    ///We render the preview for role component
+                                                    child: Stack(
+                                                      children: [
+                                                        ///This renders the video component
+                                                        ///[HMSTextureView] is only rendered if video is ON
+                                                        ///
+                                                        ///else we render the [HMSCircularAvatar]
+                                                        Selector<MeetingStore,
+                                                            bool>(
+                                                          selector: (
+                                                            _,
+                                                            meetingStore,
+                                                          ) =>
+                                                              meetingStore
+                                                                  .isVideoOn,
+                                                          builder: (_,
+                                                              isVideoOn, __) {
+                                                            return Container(
+                                                              height:
+                                                                  MediaQuery.of(
+                                                                context,
+                                                              ).size.height,
+                                                              width:
+                                                                  MediaQuery.of(
+                                                                context,
+                                                              ).size.width,
+                                                              color: HMSThemeColors
+                                                                  .backgroundDim,
+                                                              child: (isVideoOn &&
+                                                                      previewForRoleTracks
+                                                                              .item1 !=
+                                                                          null)
+                                                                  ? Center(
+                                                                      child:
+                                                                          HMSTextureView(
+                                                                        scaleType:
+                                                                            ScaleType.SCALE_ASPECT_FILL,
+                                                                        track: previewForRoleTracks
+                                                                            .item1!,
+                                                                        setMirror:
+                                                                            true,
                                                                       ),
-                                                              );
-                                                            },
-                                                          ),
+                                                                    )
+                                                                  : Center(
+                                                                      child:
+                                                                          HMSCircularAvatar(
+                                                                        name: context.read<MeetingStore>().localPeer?.name ??
+                                                                            "",
+                                                                        avatarUrl: Constant
+                                                                            .prebuiltOptions
+                                                                            ?.avatarUrl,
+                                                                      ),
+                                                                    ),
+                                                            );
+                                                          },
+                                                        ),
 
-                                                          ///This renders the preview for role header
-                                                          const PreviewForRoleHeader(),
+                                                        ///This renders the preview for role header
+                                                        const PreviewForRoleHeader(),
 
-                                                          ///This renders the preview for role bottom sheet
-                                                          PreviewForRoleBottomSheet(
-                                                            meetingStore:
-                                                                context.read<
-                                                                    MeetingStore>(),
-                                                            roleChangeRequest: context
-                                                                .read<
-                                                                    MeetingStore>()
-                                                                .currentRoleChangeRequest,
-                                                          ),
-                                                        ],
-                                                      ),
+                                                        ///This renders the preview for role bottom sheet
+                                                        PreviewForRoleBottomSheet(
+                                                          meetingStore:
+                                                              context.read<
+                                                                  MeetingStore>(),
+                                                          roleChangeRequest: context
+                                                              .read<
+                                                                  MeetingStore>()
+                                                              .currentRoleChangeRequest,
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ),
-                                              );
-                                            },
-                                          );
-                                        });
-                                      }
-                                      return Container();
-                                    },
-                                  ),
-
-                                  Selector<MeetingStore,
-                                      HMSTrackChangeRequest?>(
-                                    selector: (_, meetingStore) =>
-                                        meetingStore.hmsTrackChangeRequest,
-                                    builder: (_, hmsTrackChangeRequest, __) {
-                                      if (hmsTrackChangeRequest != null) {
-                                        HMSTrackChangeRequest currentRequest =
-                                            hmsTrackChangeRequest;
-                                        context
-                                            .read<MeetingStore>()
-                                            .hmsTrackChangeRequest = null;
-                                        WidgetsBinding.instance
-                                            .addPostFrameCallback((_) {
-                                          UtilityComponents
-                                              .showTrackChangeDialog(
-                                            context,
-                                            currentRequest,
-                                          );
-                                        });
-                                      }
-                                      return const SizedBox();
-                                    },
-                                  ),
-                                  Selector<MeetingStore, bool>(
-                                    selector: (_, meetingStore) =>
-                                        meetingStore.showAudioDeviceChangePopup,
-                                    builder:
-                                        (_, showAudioDeviceChangePopup, __) {
-                                      if (showAudioDeviceChangePopup) {
-                                        context
-                                            .read<MeetingStore>()
-                                            .showAudioDeviceChangePopup = false;
-                                        WidgetsBinding.instance
-                                            .addPostFrameCallback((
-                                          _,
-                                        ) {
-                                          showDialog(
-                                            context: context,
-                                            builder: (_) =>
-                                                AudioDeviceChangeDialog(
-                                              currentAudioDevice: context
-                                                  .read<MeetingStore>()
-                                                  .currentAudioOutputDevice!,
-                                              audioDevicesList: context
-                                                  .read<MeetingStore>()
-                                                  .availableAudioOutputDevices,
-                                              changeAudioDevice: (audioDevice) {
-                                                context
-                                                    .read<MeetingStore>()
-                                                    .switchAudioOutput(
-                                                      audioDevice: audioDevice,
-                                                    );
-                                              },
-                                            ),
-                                          );
-                                        });
-                                      }
-                                      return const SizedBox();
-                                    },
-                                  ),
-                                  Selector<MeetingStore,
-                                      Tuple2<List<HMSToastModel>, int>>(
-                                    selector: (_, meetingStore) => Tuple2(
-                                      meetingStore.toasts,
-                                      meetingStore.toasts.length,
-                                    ),
-                                    builder: (_, toastsItem, __) {
-                                      if (toastsItem.item1.isEmpty) {
-                                        return Container();
-                                      }
-                                      return Stack(
-                                        children: toastsItem.item1
-                                            .sublist(
-                                              0,
-                                              min(3, toastsItem.item2),
-                                            )
-                                            .asMap()
-                                            .entries
-                                            .map((toasts) {
-                                          var meetingStore =
-                                              context.read<MeetingStore>();
-                                          return ChangeNotifierProvider.value(
-                                            value: _visibilityController,
-                                            child: ToastWidget(
-                                              toast: toasts.value,
-                                              index: toasts.key,
-                                              toastsCount: toastsItem.item2,
-                                              meetingStore: meetingStore,
-                                            ),
-                                          );
-                                        }).toList(),
-                                      );
-                                    },
-                                  ),
-                                  Selector<MeetingStore, bool>(
-                                    selector: (_, meetingStore) =>
-                                        meetingStore.reconnecting,
-                                    builder: (_, reconnecting, __) {
-                                      if (reconnecting) {
-                                        return UtilityComponents
-                                            .showReconnectingDialog(
-                                          context,
+                                              ),
+                                            );
+                                          },
                                         );
-                                      }
-                                      return const SizedBox();
+                                      });
+                                    }
+                                    return Container();
+                                  },
+                                ),
+
+                                Selector<MeetingStore, HMSTrackChangeRequest?>(
+                                  selector: (_, meetingStore) =>
+                                      meetingStore.hmsTrackChangeRequest,
+                                  builder: (_, hmsTrackChangeRequest, __) {
+                                    if (hmsTrackChangeRequest != null) {
+                                      HMSTrackChangeRequest currentRequest =
+                                          hmsTrackChangeRequest;
+                                      context
+                                          .read<MeetingStore>()
+                                          .hmsTrackChangeRequest = null;
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        UtilityComponents.showTrackChangeDialog(
+                                          context,
+                                          currentRequest,
+                                        );
+                                      });
+                                    }
+                                    return const SizedBox();
+                                  },
+                                ),
+                                Selector<MeetingStore, bool>(
+                                  selector: (_, meetingStore) =>
+                                      meetingStore.showAudioDeviceChangePopup,
+                                  builder: (_, showAudioDeviceChangePopup, __) {
+                                    if (showAudioDeviceChangePopup) {
+                                      context
+                                          .read<MeetingStore>()
+                                          .showAudioDeviceChangePopup = false;
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((
+                                        _,
+                                      ) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) =>
+                                              AudioDeviceChangeDialog(
+                                            currentAudioDevice: context
+                                                .read<MeetingStore>()
+                                                .currentAudioOutputDevice!,
+                                            audioDevicesList: context
+                                                .read<MeetingStore>()
+                                                .availableAudioOutputDevices,
+                                            changeAudioDevice: (audioDevice) {
+                                              context
+                                                  .read<MeetingStore>()
+                                                  .switchAudioOutput(
+                                                    audioDevice: audioDevice,
+                                                  );
+                                            },
+                                          ),
+                                        );
+                                      });
+                                    }
+                                    return const SizedBox();
+                                  },
+                                ),
+                                Selector<MeetingStore,
+                                    Tuple2<List<HMSToastModel>, int>>(
+                                  selector: (_, meetingStore) => Tuple2(
+                                    meetingStore.toasts,
+                                    meetingStore.toasts.length,
+                                  ),
+                                  builder: (_, toastsItem, __) {
+                                    if (toastsItem.item1.isEmpty) {
+                                      return Container();
+                                    }
+                                    return Stack(
+                                      children: toastsItem.item1
+                                          .sublist(
+                                            0,
+                                            min(3, toastsItem.item2),
+                                          )
+                                          .asMap()
+                                          .entries
+                                          .map((toasts) {
+                                        var meetingStore =
+                                            context.read<MeetingStore>();
+                                        return ChangeNotifierProvider.value(
+                                          value: _visibilityController,
+                                          child: ToastWidget(
+                                            toast: toasts.value,
+                                            index: toasts.key,
+                                            toastsCount: toastsItem.item2,
+                                            meetingStore: meetingStore,
+                                          ),
+                                        );
+                                      }).toList(),
+                                    );
+                                  },
+                                ),
+                                Selector<MeetingStore, bool>(
+                                  selector: (_, meetingStore) =>
+                                      meetingStore.reconnecting,
+                                  builder: (_, reconnecting, __) {
+                                    if (reconnecting) {
+                                      return UtilityComponents
+                                          .showReconnectingDialog(
+                                        context,
+                                      );
+                                    }
+                                    return const SizedBox();
+                                  },
+                                ),
+                                if (HMSTheme
+                                        .HMSRoomLayout
+                                        .roleLayoutData
+                                        ?.screens
+                                        ?.preview
+                                        ?.joinForm
+                                        ?.joinBtnType ==
+                                    HMSTheme.JoinButtonType
+                                        .JOIN_BTN_TYPE_JOIN_AND_GO_LIVE)
+                                  Selector<MeetingStore, Tuple2<bool, int>>(
+                                    selector: (_, meetingStore) => Tuple2(
+                                      meetingStore.isHLSStarting,
+                                      meetingStore.peerTracks.length,
+                                    ),
+                                    builder: (_, hlsData, __) {
+                                      return (!hlsData.item1 ||
+                                              hlsData.item2 == 0)
+                                          ? const SizedBox()
+                                          : HMSHLSStartingOverlay();
                                     },
                                   ),
-                                  if (HMSTheme
-                                          .HMSRoomLayout
-                                          .roleLayoutData
-                                          ?.screens
-                                          ?.preview
-                                          ?.joinForm
-                                          ?.joinBtnType ==
-                                      HMSTheme.JoinButtonType
-                                          .JOIN_BTN_TYPE_JOIN_AND_GO_LIVE)
-                                    Selector<MeetingStore, Tuple2<bool, int>>(
-                                      selector: (_, meetingStore) => Tuple2(
-                                        meetingStore.isHLSStarting,
-                                        meetingStore.peerTracks.length,
-                                      ),
-                                      builder: (_, hlsData, __) {
-                                        return (!hlsData.item1 ||
-                                                hlsData.item2 == 0)
-                                            ? const SizedBox()
-                                            : HMSHLSStartingOverlay();
-                                      },
+                                if (failureErrors.item2 != null)
+                                  if (showError(
+                                    failureErrors.item2?.code?.errorCode,
+                                  ))
+                                    UtilityComponents.showFailureError(
+                                      failureErrors.item2!,
+                                      context,
+                                      () =>
+                                          context.read<MeetingStore>().leave(),
                                     ),
-                                  if (failureErrors.item2 != null)
-                                    if (showError(
-                                      failureErrors.item2?.code?.errorCode,
-                                    ))
-                                      UtilityComponents.showFailureError(
-                                        failureErrors.item2!,
-                                        context,
-                                        () => context
-                                            .read<MeetingStore>()
-                                            .leave(),
-                                      ),
-                                ],
-                              ),
+                              ],
                             ),
                           ),
                         ),
