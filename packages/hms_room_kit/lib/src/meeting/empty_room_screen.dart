@@ -10,37 +10,43 @@ import 'package:hms_room_kit/hms_room_kit.dart';
 class EmptyRoomScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        CircleAvatar(
-          backgroundColor: HMSThemeColors.surfaceDefault,
-          radius: 40,
-          child: SvgPicture.asset(
-            "packages/hms_room_kit/lib/src/assets/icons/add_peer.svg",
-            height: 37,
-            width: 37,
-            colorFilter: ColorFilter.mode(
-              HMSThemeColors.onSurfaceHighEmphasis,
-              BlendMode.srcIn,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            backgroundColor: HMSThemeColors.surfaceDefault,
+            radius: 40,
+            child: SvgPicture.asset(
+              "packages/hms_room_kit/lib/src/assets/icons/add_peer.svg",
+              height: 37,
+              width: 37,
+              colorFilter: ColorFilter.mode(
+                HMSThemeColors.onSurfaceHighEmphasis,
+                BlendMode.srcIn,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 24),
-        HMSTitleText(
-          text: "You’re the first to join",
-          textColor: HMSThemeColors.onSurfaceHighEmphasis,
-          fontSize: 24,
-          lineHeight: 32,
-        ),
-        const SizedBox(height: 8),
-        HMSTitleText(
-          text: "Sit back and relax till others join",
-          textColor: HMSThemeColors.onSurfaceMediumEmphasis,
-          fontWeight: FontWeight.w400,
-          maxLines: 3,
-        ),
-      ],
+          const SizedBox(height: 24),
+          HMSTitleText(
+            text: "You’re the first to join",
+            textColor: HMSThemeColors.onSurfaceHighEmphasis,
+            fontSize: 24,
+            lineHeight: 32,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          HMSTitleText(
+            text: "Sit back and relax till others join",
+            textColor: HMSThemeColors.onSurfaceMediumEmphasis,
+            fontWeight: FontWeight.w400,
+            maxLines: 3,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

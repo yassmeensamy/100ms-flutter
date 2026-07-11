@@ -112,7 +112,8 @@ class _OneToOneModeState extends State<OneToOneMode> {
                           : CustomOneToOneGrid(peerTracks: widget.peerTracks),
                       DraggableWidget(
                         dragAnimationScale: 1,
-                        topMargin: 10,
+                        initialPosition: AnchoringPosition.topRight,
+                        topMargin: Platform.isIOS ? 70 : 60,
                         bottomMargin: Platform.isIOS
                             ? widget.bottomMargin + 20
                             : widget.bottomMargin,

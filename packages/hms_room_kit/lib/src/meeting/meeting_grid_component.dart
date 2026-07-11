@@ -58,7 +58,8 @@ class MeetingGridComponent extends StatelessWidget {
               selector: (_, meetingNavigationVisibilityController) =>
                   meetingNavigationVisibilityController.showControls,
               builder: (_, showControls, __) {
-                return Center(
+                return Align(
+                  alignment: Alignment.topCenter,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
 
@@ -71,10 +72,10 @@ class MeetingGridComponent extends StatelessWidget {
                             MediaQuery.of(context).padding.top -
                             MediaQuery.of(context).padding.bottom -
                             (Platform.isAndroid
-                                ? 160
+                                ? 90
                                 : Platform.isIOS
-                                    ? 230
-                                    : 160)
+                                    ? 110
+                                    : 90)
                         : MediaQuery.of(context).size.height -
                             MediaQuery.of(context).padding.top -
                             MediaQuery.of(context).padding.bottom -
